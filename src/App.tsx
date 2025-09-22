@@ -18,9 +18,9 @@ function App() {
   return (
     <div className="flex">
       {!sidebarOpen && 
-      <div className="fixed top-4 left-[10px] w-fit flex flex-col gap-2 justify-center items-start z-50 ">
+      <div className="fixed top-4 left-[10px] w-fit flex  gap-2 justify-center items-start z-50">
         <Button
-          className="h-10 rounded-r-md flex items-center justify-center bg-[#f7f5f2] text-black shadow-md group transition-all duration-300"
+          className="h-10  flex items-center justify-center text-black shadow-md group transition-all duration-300"
           onClick={() => {dispatch(toggleSidebar()); dispatch(setSideBarType("pivotTools"))}}
           variant="outline"
         >
@@ -28,7 +28,7 @@ function App() {
             <span className="hidden group-hover:inline text-sm">Pivot</span>
         </Button>
         { fileName && <Button
-          className=" h-10 rounded-r-md flex items-center justify-center bg-[#f7f5f2] text-black shadow-md group transition-all duration-300"
+          className=" h-10 flex items-center justify-center text-black shadow-md group transition-all duration-300"
           onClick={() =>{ dispatch(toggleSidebar()) ; dispatch(setSideBarType("fileChanger"))}}
           variant="outline"
         >
@@ -37,7 +37,7 @@ function App() {
         </Button>}
         {filtersCols.length > 0 && (
                   <Button
-                    className="relative  h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-black shadow-lg group transition-all duration-300 "
+                    className="relative h-10  hover:bg-blue-600 text-black shadow-lg group transition-all duration-300 "
                     onClick={() => {dispatch(toggleSidebar()) ; dispatch(setSideBarType("filters"))}}
                   >
                         <RiFilterFill size={24} />
@@ -48,13 +48,13 @@ function App() {
       </div>
       }
       <Sidebar file={loading}/>
-      <nav className={`fixed top-0 left-0 w-full transition-all duration-300 ease-in-out bg-white/10 backdrop-blur-lg p-2 ${sidebarOpen ? "ml-[205px]" : "ml-0"}`}> 
-        <h1 className="font-bold text-center">Pivot Table Generator</h1>
+      <nav className={`fixed top-0 left-0 w-full transition-all duration-300 ease-in-out bg-gray-800 border-b border-[#e5e5e5] backdrop-blur-lg p-2 ${sidebarOpen ? "ml-[205px]" : "ml-0"}`}> 
+        <h1 className="font-bold text-center text-[#f7f5f2]">Pivot Table Generator</h1>
       </nav>
       <main
         className={`transition-all duration-300 ease-in-out flex-1 flex justify-center overflow-x-hidden items-start p-6`}
         style={{
-          marginLeft: sidebarOpen ? "420px" : "20px", 
+          marginLeft: sidebarOpen ? "420px" : "0px", 
         }}
       >
         <div className="w-full ">
