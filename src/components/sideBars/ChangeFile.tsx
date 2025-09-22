@@ -54,7 +54,7 @@ const ChangeFile: React.FC = () => {
           </div>
           <Button
             variant="ghost"
-            className="bg-red-800 border border-red-100 hover:border-red-400 text-black"
+            className="bg-white border border-gray-800 hover:border-gray-400 text-black cursor-pointer"
             size="sm"
             onClick={triggerFilePicker}
           >
