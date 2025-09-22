@@ -77,7 +77,6 @@ const PivotTools: React.FC = () => {
     const fieldToAdd = reduxColumns.find(c => c.name === activeName);
     if (!fieldToAdd) return;
 
-    // Remove from the origin zone unless it's a drag-to-filter operation
     if (activeZone !== "source" && overZone !== "filters") {
       switch (activeZone) {
         case "rows":
@@ -98,19 +97,16 @@ const PivotTools: React.FC = () => {
     // Add to the destination zone
     switch (overZone) {
       case "rows":
-        // A field can't be in rows, cols, and values simultaneously
         dispatch(setCols(colsCols.filter(c => c !== activeName)));
         dispatch(setValues(valuesCols.filter(v => v.field !== activeName)));
         dispatch(setRows([...rowsCols, activeName]));
         break;
       case "cols":
-        // A field can't be in rows, cols, and values simultaneously
         dispatch(setRows(rowsCols.filter(c => c !== activeName)));
         dispatch(setValues(valuesCols.filter(v => v.field !== activeName)));
         dispatch(setCols([...colsCols, activeName]));
         break;
       case "values":
-        // A field can't be in rows, cols, and values simultaneously
         dispatch(setRows(rowsCols.filter(c => c !== activeName)));
         dispatch(setCols(colsCols.filter(c => c !== activeName)));
         const aggregator = fieldToAdd.type === "string" ? "count" : "sum";
@@ -122,7 +118,6 @@ const PivotTools: React.FC = () => {
         }
         break;
       case "source":
-        // A field moved back to the source should be removed from all other zones
         dispatch(setRows(rowsCols.filter(c => c !== activeName)));
         dispatch(setCols(colsCols.filter(c => c !== activeName)));
         dispatch(setValues(valuesCols.filter(v => v.field !== activeName)));

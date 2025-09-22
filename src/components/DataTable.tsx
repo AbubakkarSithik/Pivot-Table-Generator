@@ -49,7 +49,6 @@ function computeRowSpans(
 const DataTable: React.FC = () => {
   const dataState = useSelector((state: RootState) => state.data);
 
-  // Sorting state
   const [sortRowIndex, setSortRowIndex] = useState<number | null>(null);
   const [sortRowDir, setSortRowDir] = useState<"asc" | "desc" | null>(null);
   const [sortColIndex, setSortColIndex] = useState<number | null>(null);
@@ -71,7 +70,6 @@ const DataTable: React.FC = () => {
     matrix,
   } = pivot;
 
-  // If no values selected show hint
   if (valueFields.length === 0) {
     return (
       <div className="p-6 text-gray-600">
@@ -113,7 +111,6 @@ const DataTable: React.FC = () => {
     0
   );
 
-  // Toggle helpers
   const toggleRowSort = (index: number) => {
     if (sortRowIndex !== index) {
       setSortRowIndex(index);
