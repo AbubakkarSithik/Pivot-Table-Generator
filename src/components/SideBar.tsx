@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ file }: SidebarProps) => {
         style={{ width: sidebarOpen ? "420px" : 0 }}
       >
         <Button
-          className="absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-white text-black shadow-md z-[999] cursor-pointer"
+          className={`absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-white text-black shadow-md z-[999] cursor-pointer ${sideBarType === "pivotTools" && "hidden"}`}
           onClick={() => dispatch(toggleSidebar())}
           variant="outline"
         >

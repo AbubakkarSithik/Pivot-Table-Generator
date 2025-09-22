@@ -1,12 +1,13 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setRows, setCols, setValues, setFilters } from "../../lib/store/slices/dataSlice";
+import { setRows, setCols, setValues, setFilters, toggleSidebar } from "../../lib/store/slices/dataSlice";
 import type { ColumnItem } from "@/lib/types/type";
 import { arrayMove } from '@dnd-kit/sortable';
 import {type DragEndEvent , DndContext,closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { RootState } from "../../lib/store";
 import DroppableZone from "../dnd/DroppableZone";
-import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions} from "@remixicon/react";
+import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions, RiCloseLine} from "@remixicon/react";
+import { Button } from "../ui/button";
 
 
 const PivotTools: React.FC = () => {
@@ -27,7 +28,7 @@ const PivotTools: React.FC = () => {
         .map((c) => ({ name: c.name, type: c.type }));
     const sensors = useSensors(
         useSensor(PointerSensor, {
-          activationConstraint: { distance: 5 },
+          activationConstraint: { distance: 10 },
         })
       );
 
@@ -127,26 +128,32 @@ const PivotTools: React.FC = () => {
   }; 
 
   return(
-    <div className="flex flex-col h-full">
-            <div className="px-4 pt-6 pb-3 border-b border-gray-700">
+    <div className="relative flex flex-col h-full">
+            <div className="sticky bg-gray-800 top-0 left-0 w-full px-4 pt-6 pb-3 border-b border-gray-700">
               <h2 className="text-xl font-semibold">Pivot Table Fields</h2>
               <p className="text-sm text-gray-300 mt-1">
                 Choose the fields to add to table
               </p>
+              <Button
+                  className="absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-white text-black shadow-md z-[999] cursor-pointer"
+                  onClick={() => dispatch(toggleSidebar())}
+                  variant="outline"
+                >
+                  <RiCloseLine size={22} />
+            </Button>
             </div>
-
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <div className="p-4 flex flex-col h-full">
+              <div className="p-4 flex flex-col h-full ">
                 <div className="mb-4">
                   <h3 className="text-sm text-gray-300 mb-2 text-left flex gap-2">
                     <RiInputField size={18} />
                     Available Fields:
                   </h3>
-                  <div className="max-h-[200px] overflow-y-auto overflow-x-hidden">
+                  <div>
                     <DroppableZone zoneId="source" items={sourceCols} />
                   </div>
                 </div>
