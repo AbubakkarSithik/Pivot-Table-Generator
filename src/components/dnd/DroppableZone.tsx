@@ -5,11 +5,13 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import DraggableItem from "./DraggableItem";
 import SortableDraggableItem from "./SortableDraggableItem";
 
+interface DroppableZoneProps {
+  zoneId: string;
+  items: ColumnItem[];
+  onDelete?: (name: string) => void;
+}
 
-const DroppableZone: React.FC<{ zoneId: string; items: ColumnItem[] }> = ({
-  zoneId,
-  items,
-}) => {
+const DroppableZone: React.FC<DroppableZoneProps> = ({ zoneId, items, onDelete }) => {
   const { setNodeRef, isOver } = useDroppable({ id: zoneId });
 
   const itemIds = items.map(item => `${zoneId}:${item.name}`);
@@ -18,8 +20,9 @@ const DroppableZone: React.FC<{ zoneId: string; items: ColumnItem[] }> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[120px] p-2 rounded-lg border-2 border-dashed ${isOver ? "bg-gray-600 border-blue-400" : "bg-gray-700 border-gray-500"
-        }`}
+      className={`min-h-[120px] p-2 rounded-lg border-2 border-dashed ${
+        isOver ? "bg-gray-600 border-blue-400" : "bg-gray-700 border-gray-500"
+      }`}
     >
       {isSortableZone ? (
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
@@ -29,6 +32,7 @@ const DroppableZone: React.FC<{ zoneId: string; items: ColumnItem[] }> = ({
               id={`${zoneId}:${col.name}`}
               col={col}
               zone={zoneId}
+              onDelete={onDelete}
             />
           ))}
         </SortableContext>
@@ -39,6 +43,7 @@ const DroppableZone: React.FC<{ zoneId: string; items: ColumnItem[] }> = ({
             id={`${zoneId}:${col.name}`}
             col={col}
             zone={zoneId}
+            onDelete={onDelete}
           />
         ))
       )}
