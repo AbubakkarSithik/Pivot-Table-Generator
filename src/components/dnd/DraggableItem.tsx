@@ -1,24 +1,23 @@
 import React from "react";
-import type { ColumnItem , AggregatorType } from "@/lib/types/type";
+import type { ColumnItem, AggregatorType } from "@/lib/types/type";
 import { useDraggable } from "@dnd-kit/core";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/lib/store";
 import { updateValueAggregator } from "@/lib/store/slices/dataSlice";
+import { RiCloseLine } from "@remixicon/react";
 
-
-const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string }> = ({
+const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDelete?: (name: string) => void }> = ({
   id,
   col,
   zone,
+  onDelete,
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
   const dispatch = useDispatch();
   const valuesCols = useSelector((state: RootState) => state.data.values);
 
   const style = {
-    transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined,
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     zIndex: isDragging ? 999 : undefined,
   } as React.CSSProperties;
 
@@ -30,12 +29,11 @@ const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string }> = (
       style={style}
       {...listeners}
       {...attributes}
-      className={`mb-2 p-2 rounded-md border flex justify-between items-center gap-2 border-gray-600 text-sm cursor-grab ${isDragging ? "bg-gray-500 shadow-lg cursor-grabbing" : "bg-gray-600"
-        }`}
+      className={`mb-2 p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm cursor-grab ${
+        isDragging ? "bg-gray-500 shadow-lg cursor-grabbing" : "bg-gray-600"
+      } ${zone === "source" && "max-h-8 mb-0"}  `}
     >
-      <div className="font-medium text-gray-200 truncate text-sm">
-        {col.name}
-      </div>
+      <div className="font-medium text-gray-200 truncate text-sm">{col.name}</div>
 
       {zone === "values" ? (
         <select
@@ -58,6 +56,15 @@ const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string }> = (
         </select>
       ) : (
         <div className="text-xs text-gray-400 uppercase">{col.type}</div>
+      )}
+
+      {zone !== "source" && onDelete && (
+        <button
+          className="text-gray-300 hover:text-red-500 cursor-pointer"
+          onClick={() => onDelete(col.name)}
+        >
+          <RiCloseLine size={16} />
+        </button>
       )}
     </div>
   );

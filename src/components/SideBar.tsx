@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ file }: SidebarProps) => {
         style={{ width: sidebarOpen ? "420px" : 0 }}
       >
         <Button
-          className="absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-[#f7f5f2] text-black shadow-md"
+          className="absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-[#f7f5f2] text-black shadow-md cursor-pointer"
           onClick={() => dispatch(toggleSidebar())}
           variant="outline"
         >
@@ -48,11 +48,11 @@ const Sidebar: React.FC<SidebarProps> = ({ file }: SidebarProps) => {
   return (
     <>
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-800 text-white transition-all duration-300 ease-in-out shadow-xl z-50 overflow-x-hidden overflow-y-auto hide-scroll`}
+        className={`fixed top-0 left-0 h-full bg-gray-800 text-white transition-all duration-300 ease-in-out shadow-xl z-50 overflow-x-hidden overflow-y-auto hide-scroll `}
         style={{ width: sidebarOpen ? "420px" : 0 }}
       >
         <Button
-          className="absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-white text-black shadow-md z-[999]"
+          className={`absolute top-4 right-4 w-10 h-10 rounded-r-md flex items-center justify-center bg-white text-black shadow-md z-[999] cursor-pointer ${sideBarType === "pivotTools" && "hidden"}`}
           onClick={() => dispatch(toggleSidebar())}
           variant="outline"
         >

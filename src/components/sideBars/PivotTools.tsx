@@ -1,38 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setRows, setCols, setValues, setFilters } from "../../lib/store/slices/dataSlice";
+import { setRows, setCols, setValues, setFilters, toggleSidebar } from "../../lib/store/slices/dataSlice";
 import type { ColumnItem } from "@/lib/types/type";
 import { arrayMove } from '@dnd-kit/sortable';
-import {type DragEndEvent , DndContext,closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { type DragEndEvent, DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from "@dnd-kit/core";
 import type { RootState } from "../../lib/store";
 import DroppableZone from "../dnd/DroppableZone";
-import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions} from "@remixicon/react";
-
+import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions, RiCloseLine } from "@remixicon/react";
+import { Button } from "../ui/button";
 
 const PivotTools: React.FC = () => {
-    const dispatch = useDispatch();
-    const reduxColumns = useSelector((state: RootState) => state.data.columns);
-    const rowsCols = useSelector((state: RootState) => state.data.rows);
-    const colsCols = useSelector((state: RootState) => state.data.cols);
-    const valuesCols = useSelector((state: RootState) => state.data.values);
-    const filtersCols = useSelector((state: RootState) => state.data.filters);
-    const usedCols = new Set<string>([
-        ...rowsCols,
-        ...colsCols,
-        ...valuesCols.map((v) => v.field),
-        ...filtersCols,
-    ]);
-    const sourceCols: ColumnItem[] = reduxColumns
-        .filter((c) => !usedCols.has(c.name))
-        .map((c) => ({ name: c.name, type: c.type }));
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-          activationConstraint: { distance: 5 },
-        })
-      );
+  const dispatch = useDispatch();
+  const reduxColumns = useSelector((state: RootState) => state.data.columns);
+  const rowsCols = useSelector((state: RootState) => state.data.rows);
+  const colsCols = useSelector((state: RootState) => state.data.cols);
+  const valuesCols = useSelector((state: RootState) => state.data.values);
+  const filtersCols = useSelector((state: RootState) => state.data.filters);
 
-   const handleDragEnd = (event: DragEndEvent) => {
+  const usedCols = new Set<string>([
+    ...rowsCols,
+    ...colsCols,
+    ...valuesCols.map((v) => v.field),
+    ...filtersCols,
+  ]);
+
+  const sourceCols: ColumnItem[] = reduxColumns
+    .filter((c) => !usedCols.has(c.name))
+    .map((c) => ({ name: c.name, type: c.type }));
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 10 } })
+  );
+
+  const [activeItem, setActiveItem] = useState<ColumnItem | null>(null);
+
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveItem(null); // clear overlay
     if (!over) return;
 
     const [activeZone, activeName] = active.id.toString().split(":");
@@ -93,8 +97,7 @@ const PivotTools: React.FC = () => {
           break;
       }
     }
-    
-    // Add to the destination zone
+
     switch (overZone) {
       case "rows":
         dispatch(setCols(colsCols.filter(c => c !== activeName)));
@@ -110,7 +113,7 @@ const PivotTools: React.FC = () => {
         dispatch(setRows(rowsCols.filter(c => c !== activeName)));
         dispatch(setCols(colsCols.filter(c => c !== activeName)));
         const aggregator = fieldToAdd.type === "string" ? "count" : "sum";
-        dispatch(setValues([...valuesCols, { field: activeName, aggregator: aggregator }]));
+        dispatch(setValues([...valuesCols, { field: activeName, aggregator }]));
         break;
       case "filters":
         if (!filtersCols.includes(activeName)) {
@@ -124,94 +127,93 @@ const PivotTools: React.FC = () => {
         dispatch(setFilters(filtersCols.filter(c => c !== activeName)));
         break;
     }
-  }; 
+  };
 
-  return(
-    <div className="flex flex-col h-full">
-            <div className="px-4 pt-6 pb-3 border-b border-gray-700">
-              <h2 className="text-xl font-semibold">Pivot Table Fields</h2>
-              <p className="text-sm text-gray-300 mt-1">
-                Choose the fields to add to table
-              </p>
-            </div>
+  const handleDelete = (zone: string, name: string) => {
+    switch (zone) {
+      case "rows":
+        dispatch(setRows(rowsCols.filter(c => c !== name)));
+        break;
+      case "cols":
+        dispatch(setCols(colsCols.filter(c => c !== name)));
+        break;
+      case "values":
+        dispatch(setValues(valuesCols.filter(v => v.field !== name)));
+        break;
+      case "filters":
+        dispatch(setFilters(filtersCols.filter(c => c !== name)));
+        break;
+    }
+  };
 
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <div className="p-4 flex flex-col h-full">
-                <div className="mb-4">
-                  <h3 className="text-sm text-gray-300 mb-2 text-left flex gap-2">
-                    <RiInputField size={18} />
-                    Available Fields:
-                  </h3>
-                  <div className="max-h-[200px] overflow-y-auto overflow-x-hidden">
-                    <DroppableZone zoneId="source" items={sourceCols} />
-                  </div>
-                </div>
+  return (
+    <div className="relative flex flex-col h-full">
+      <div className="sticky bg-gray-800 top-0 left-0 w-full px-4 pt-6 pb-3 border-b border-gray-700">
+        <h2 className="text-xl font-semibold">Pivot Table Fields</h2>
+        <p className="text-sm text-gray-300 mt-1">Choose the fields to add to table</p>
+        <Button
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white text-black shadow-md z-[999] cursor-pointer"
+          onClick={() => dispatch(toggleSidebar())}
+          variant="outline"
+        >
+          <RiCloseLine size={22} />
+        </Button>
+      </div>
 
-                <p className="text-sm text-gray-300 mb-2 text-left flex gap-2">
-                  <RiDragDropFill size={18} /> Drag Fields between areas below:
-                </p>
-                <div className="grid grid-cols-2 gap-4 ">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-1 flex gap-2">
-                      <RiLayoutColumnLine size={18} />
-                      Columns
-                    </h4>
-                    <DroppableZone
-                      zoneId="cols"
-                      items={colsCols.map((c) => {
-                        const col = reduxColumns.find((rc) => rc.name === c);
-                        return { name: c, type: col ? col.type : "unknown" };
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-1 flex gap-2">
-                      <RiLayoutRowLine size={18} />
-                      Rows
-                    </h4>
-                    <DroppableZone
-                      zoneId="rows"
-                      items={rowsCols.map((c) => {
-                        const col = reduxColumns.find((rc) => rc.name === c);
-                        return { name: c, type: col ? col.type : "unknown" };
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-1 flex gap-2">
-                      <RiFunctions size={18} />
-                      Values
-                    </h4>
-                    <DroppableZone
-                      zoneId="values"
-                      items={valuesCols.map((v) => {
-                        const col = reduxColumns.find((rc) => rc.name === v.field);
-                        return { name: v.field, type: col ? col.type : "unknown" };
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-300 mb-1 flex gap-2">
-                      <RiFilter2Line size={18} />
-                      Filters
-                    </h4>
-                    <DroppableZone
-                      zoneId="filters"
-                      items={filtersCols.map((c) => {
-                        const col = reduxColumns.find((rc) => rc.name === c);
-                        return { name: c, type: col ? col.type : "unknown" };
-                      })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </DndContext>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={(e) => {
+          const [_, name] = e.active.id.toString().split(":");
+          const col = reduxColumns.find(c => c.name === name);
+          if (col) setActiveItem({ name: col.name, type: col.type });
+        }}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="p-4 flex flex-col h-full ">
+          <div className="mb-4">
+            <h3 className="text-sm text-gray-300 mb-2 flex gap-2">
+              <RiInputField size={18} />
+              Available Fields:
+            </h3>
+            <DroppableZone zoneId="source" items={sourceCols} />
           </div>
-  )
-}
 
-export default PivotTools; 
+          <p className="text-sm text-gray-300 mb-2 flex gap-2">
+            <RiDragDropFill size={18} /> Drag Fields between areas below:
+          </p>
+          <div className="grid grid-cols-2 gap-4 ">
+            {[
+              { id: "cols", label: "Columns", icon: <RiLayoutColumnLine size={18} />, items: colsCols },
+              { id: "rows", label: "Rows", icon: <RiLayoutRowLine size={18} />, items: rowsCols },
+              { id: "values", label: "Values", icon: <RiFunctions size={18} />, items: valuesCols.map(v => v.field) },
+              { id: "filters", label: "Filters", icon: <RiFilter2Line size={18} />, items: filtersCols },
+            ].map((zone) => (
+              <div key={zone.id}>
+                <h4 className="text-sm font-medium text-gray-300 mb-1 flex gap-2">{zone.icon}{zone.label}</h4>
+                <DroppableZone
+                  zoneId={zone.id}
+                  items={zone.items.map((c) => {
+                    const col = reduxColumns.find(rc => rc.name === (typeof c === "string" ? c : c));
+                    return { name: typeof c === "string" ? c : c, type: col ? col.type : "unknown", deletable: true };
+                  })}
+                  onDelete={(name) => handleDelete(zone.id, name)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        <DragOverlay>
+          {activeItem ? (
+            <div className="p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm bg-gray-600 shadow-lg cursor-grabbing">
+              <div className="font-medium text-gray-200 truncate text-sm">{activeItem.name}</div>
+              <div className="text-xs text-gray-400 uppercase">{activeItem.type}</div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
+  );
+};
+
+export default PivotTools;
