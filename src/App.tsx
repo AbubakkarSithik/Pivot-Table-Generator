@@ -62,9 +62,9 @@ function App() {
           <div className="max-w-[600px] w-full mx-auto">
             <FileUploader setLoading={setLoading} />
           </div>
-          <div className="p-2 mt-8 bg-red-200 rounded-xl shadow-xl">
+          {fileName && <div className="p-2 mt-8 bg-red-200 rounded-xl shadow-xl">
              <DataTable />
-          </div>
+          </div>}
         </div>
       </main>
     </div>

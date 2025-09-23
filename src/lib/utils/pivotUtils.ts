@@ -1,135 +1,118 @@
-import type { DataState, AggregatorType , PivotOptions , PivotResult} from "@/lib/types/type";
+import type { DataState, AggregatorType, PivotResult } from "@/lib/types/type";
 
-function getUniqueCombinations(data: any[], fields: string[]): string[][] {
-  if (fields.length === 0) return [[]];
-  const combos: string[][] = [];
-  const seen = new Set<string>();
+function cartesianProduct(arrays: string[][]): string[][] {
+  if (arrays.length === 0) return [[]];
+  return arrays.reduce<string[][]>(
+    (acc, curr) =>
+      acc.flatMap((a) => curr.map((c) => [...a, c])),
+    [[]]
+  );
+}
 
+function getUniqueValues(data: any[], field: string): string[] {
+  const set = new Set<string>();
   data.forEach((row) => {
-    const combo = fields.map((f) => String(row[f]));
-    const key = combo.join("||");
-    if (!seen.has(key)) {
-      seen.add(key);
-      combos.push(combo);
-    }
+    // Use an empty string for null or undefined values to ensure they are grouped
+    set.add(String(row[field] ?? ""));
   });
-
-  return combos;
+  const values = Array.from(set);
+  values.sort(); // Sort for consistent order
+  return values;
 }
 
-function sortCombinations(
-  combos: string[][],
-  sortIndex: number | null,
-  direction: "asc" | "desc" | null
-): string[][] {
-  if (sortIndex === null || !direction) return combos;
+// Helper to check if a row matches a specific combination of field values
+const matchCombo = (row: any, fields: string[], parts: string[]) =>
+  fields.every((f, i) => String(row[f] ?? "") === parts[i]);
 
-  return [...combos].sort((a, b) => {
-    const keyA = a[sortIndex] ?? "";
-    const keyB = b[sortIndex] ?? "";
-    if (direction === "asc") return keyA.localeCompare(keyB);
-    return keyB.localeCompare(keyA);
-  });
-}
 
-export function generatePivot(
-  state: DataState,
-  options: PivotOptions = {}
-): PivotResult {
+export function generatePivot(state: DataState): PivotResult {
   const { data, rows, cols, values, filters, filterValues } = state;
-  const {
-    sortRowIndex = null,
-    sortRowDir = null,
-    sortColIndex = null,
-    sortColDir = null,
-  } = options;
 
   const rowFields = rows ?? [];
   const colFields = cols ?? [];
   const valueDefs = values ?? [];
+  const hasExplicitValues = valueDefs.length > 0;
 
-  if (valueDefs.length === 0) {
-    return {
-      rowFields,
-      colFields,
-      valueFields: [],
-      rowCombinations: [],
-      colCombinations: [],
-      matrix: [],
-    };
-  }
-
-  // Apply filters
+  // 1. Apply filters to the data
   let filteredData = data;
   filters.forEach((f) => {
     const selected = filterValues[f];
-    if (selected) {
-      filteredData = filteredData.filter((row) => row[f] === selected);
+    if (selected && selected !== "all") {
+      filteredData = filteredData.filter((row) => String(row[f] ?? "") === selected);
     }
   });
 
-  let rowCombinations = getUniqueCombinations(filteredData, rowFields);
-  let colCombinations = getUniqueCombinations(filteredData, colFields);
+  // 2. Build unique row combinations
+  let rowCombinations: string[][] = [[]]; // Default for case with no row fields
+  if (rowFields.length > 0) {
+    const rowSet = new Set<string>();
+    const foundCombinations: string[][] = [];
+    filteredData.forEach(row => {
+      const combo = rowFields.map(f => String(row[f] ?? ''));
+      const key = combo.join('||');
+      if (!rowSet.has(key)) {
+        rowSet.add(key);
+        foundCombinations.push(combo);
+      }
+    });
+    // Use the found combinations if any exist
+    if (foundCombinations.length > 0) rowCombinations = foundCombinations;
+  }
 
-  rowCombinations = sortCombinations(rowCombinations, sortRowIndex, sortRowDir);
-  colCombinations = sortCombinations(colCombinations, sortColIndex, sortColDir);
+  // 3. Build unique column combinations
+  let colCombinations: string[][] = [[]]; // Default for case with no col fields
+  if (colFields.length > 0) {
+    const colValues: string[][] = colFields.map(f => getUniqueValues(filteredData, f));
+    const foundCombinations = cartesianProduct(colValues);
+    if (foundCombinations.length > 0 && foundCombinations[0].length > 0) {
+       colCombinations = foundCombinations;
+    }
+  }
+
+  // 4. If no value fields are provided, use "Count" as the default aggregator
+  const effectiveValueDefs = hasExplicitValues
+    ? valueDefs
+    : [{ field: "Count", aggregator: "count" as AggregatorType }];
 
   const R = rowCombinations.length;
   const C = colCombinations.length;
-  const V = valueDefs.length;
+  const V = effectiveValueDefs.length;
 
+  // 5. Initialize the matrix with nulls
   const matrix: (number | null)[][][] = Array.from({ length: R }, () =>
     Array.from({ length: C }, () => Array.from({ length: V }, () => null))
   );
 
-  const matchCombo = (row: any, fields: string[], parts: string[]) =>
-    fields.every((f, i) => String(row[f]) === parts[i]);
-
+  // 6. Populate the matrix with aggregated values
   for (let ri = 0; ri < R; ri++) {
     for (let ci = 0; ci < C; ci++) {
       const rowParts = rowCombinations[ri];
       const colParts = colCombinations[ci];
 
-      const subset = filteredData.filter(
-        (r) =>
-          matchCombo(r, rowFields, rowParts) &&
-          matchCombo(r, colFields, colParts)
+      const subset = filteredData.filter(r =>
+        matchCombo(r, rowFields, rowParts) && matchCombo(r, colFields, colParts)
       );
 
-      for (let vi = 0; vi < V; vi++) {
-        const { field: valField, aggregator } = valueDefs[vi];
-        const rawVals = subset.map((r) => r[valField]);
-        const valuesArr = rawVals
-          .map((v) => Number(v))
-          .filter((n) => !isNaN(n));
+      if (subset.length === 0) continue; // Skip if no data for this intersection
 
-        if (subset.length === 0) {
-          matrix[ri][ci][vi] = null;
+      for (let vi = 0; vi < V; vi++) {
+        const { field: valField, aggregator } = effectiveValueDefs[vi];
+        const rawVals = subset.map((r) => r[valField]);
+
+        if (aggregator === "count") {
+          matrix[ri][ci][vi] = subset.length;
           continue;
         }
 
-       if (valuesArr.length === 0) {
-            if (aggregator === "count") {
-                matrix[ri][ci][vi] = subset.length;
-            } else {
-                matrix[ri][ci][vi] = null; 
-            }
-            continue;
-        }
+        const valuesArr = rawVals.map((v) => Number(v)).filter((n) => !isNaN(n));
+        if (valuesArr.length === 0) continue;
 
-        switch (aggregator as AggregatorType) {
+        switch (aggregator) {
           case "sum":
-            matrix[ri][ci][vi] =
-              valuesArr.length > 0
-                ? valuesArr.reduce((a, b) => a + b, 0)
-                : null;
-            break;
-          case "count":
-            matrix[ri][ci][vi] = subset.length;
+            matrix[ri][ci][vi] = valuesArr.reduce((a, b) => a + b, 0);
             break;
           case "avg":
-            matrix[ri][ci][vi] =
-              valuesArr.reduce((a, b) => a + b, 0) / valuesArr.length;
+            matrix[ri][ci][vi] = valuesArr.reduce((a, b) => a + b, 0) / valuesArr.length;
             break;
           case "min":
             matrix[ri][ci][vi] = Math.min(...valuesArr);
@@ -137,21 +120,21 @@ export function generatePivot(
           case "max":
             matrix[ri][ci][vi] = Math.max(...valuesArr);
             break;
-          default:
-            matrix[ri][ci][vi] = null;
         }
       }
     }
   }
 
+  // 7. Return the complete pivot result
   return {
     rowFields,
     colFields,
-    valueFields: valueDefs.map(
-      (v) => `${v.field} (${v.aggregator.toUpperCase()})`
-    ),
+    valueFields: hasExplicitValues
+      ? valueDefs.map(v => `${v.field} (${v.aggregator.toUpperCase()})`)
+      : ['Count'],
     rowCombinations,
     colCombinations,
     matrix,
+    wasImplicit: !hasExplicitValues, // Let the UI know if 'Count' was added automatically
   };
 }

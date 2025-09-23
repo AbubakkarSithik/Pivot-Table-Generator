@@ -39,6 +39,7 @@ export interface PivotResult {
   rowCombinations: string[][];
   colCombinations: string[][];
   matrix: (number | null)[][][];
+  wasImplicit: boolean;
 }
 
 export interface PivotOptions {
