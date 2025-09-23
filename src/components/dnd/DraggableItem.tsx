@@ -29,7 +29,7 @@ const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDel
       style={style}
       {...listeners}
       {...attributes}
-      className={`mb-2 p-2 rounded-md border flex justify-between items-center gap-2 border-gray-600 text-sm cursor-grab ${
+      className={`mb-2 p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm cursor-grab ${
         isDragging ? "bg-gray-500 shadow-lg cursor-grabbing" : "bg-gray-600"
       }`}
     >

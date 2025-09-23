@@ -20,7 +20,7 @@ const DroppableZone: React.FC<DroppableZoneProps> = ({ zoneId, items, onDelete }
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[120px] p-2 rounded-lg border-2 border-dashed ${
+      className={`min-h-[120px] p-2 rounded-lg border-2 border-dashed ${zoneId === "source" && "flex flex-wrap gap-1 overflow-y-auto max-h-[150px]" }  ${
         isOver ? "bg-gray-600 border-blue-400" : "bg-gray-700 border-gray-500"
       }`}
     >

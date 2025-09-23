@@ -164,7 +164,7 @@ const PivotTools: React.FC = () => {
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={(e) => {
-          const [ name] = e.active.id.toString().split(":");
+          const [_, name] = e.active.id.toString().split(":");
           const col = reduxColumns.find(c => c.name === name);
           if (col) setActiveItem({ name: col.name, type: col.type });
         }}
@@ -205,8 +205,9 @@ const PivotTools: React.FC = () => {
         </div>
         <DragOverlay>
           {activeItem ? (
-            <div className="px-2 py-1 bg-blue-600 text-white rounded shadow">
-              {activeItem.name}
+            <div className="p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm bg-gray-600 shadow-lg cursor-grabbing">
+              <div className="font-medium text-gray-200 truncate text-sm">{activeItem.name}</div>
+              <div className="text-xs text-gray-400 uppercase">{activeItem.type}</div>
             </div>
           ) : null}
         </DragOverlay>
