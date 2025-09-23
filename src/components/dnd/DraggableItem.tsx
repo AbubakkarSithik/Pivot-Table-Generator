@@ -31,7 +31,7 @@ const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDel
       {...attributes}
       className={`mb-2 p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm cursor-grab ${
         isDragging ? "bg-gray-500 shadow-lg cursor-grabbing" : "bg-gray-600"
-      }`}
+      } ${zone === "source" && "max-h-8 mb-0"}  `}
     >
       <div className="font-medium text-gray-200 truncate text-sm">{col.name}</div>
 
