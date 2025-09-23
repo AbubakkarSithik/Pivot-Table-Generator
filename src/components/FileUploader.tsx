@@ -49,7 +49,7 @@ const FileUploader: React.FC<{ setLoading: (val: boolean) => void }> = ({
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="cursor-pointer bg-red-200 hover:scale-105 duration-300 transition-all ease-in-out"
+            className="cursor-pointer bg-red-200 hover:border hover:border-gray-800 transition-all duration-300"
           />
     </div>
   );
