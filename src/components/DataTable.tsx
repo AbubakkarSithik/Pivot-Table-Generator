@@ -104,7 +104,7 @@ const DataTable: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-auto max-h-[560px] h-full hide-scroll bg-white rounded-xl border border-gray-300">
+      <div className="overflow-auto max-h-[590px] h-full hide-scroll bg-white rounded-xl border border-gray-300">
         <table className="min-w-full border-collapse">
           <thead>
             {hasCols &&

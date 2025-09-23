@@ -18,7 +18,7 @@ function App() {
   return (
     <div className="flex">
       {!sidebarOpen && 
-      <div className="fixed top-4 left-[10px] w-fit flex  gap-2 justify-center items-start z-50">
+      <div className="fixed top-1.5 left-[10px] w-fit flex  gap-2 justify-center items-start z-50">
         <Button
           className="h-10 flex items-center justify-center text-black group transition-all duration-300 cursor-pointer"
           onClick={() => {dispatch(toggleSidebar()); dispatch(setSideBarType("pivotTools"))}}
@@ -49,11 +49,11 @@ function App() {
       </div>
       }
       <Sidebar file={loading}/>
-      <nav className={`fixed top-0 left-0 w-full transition-all duration-300 ease-in-out bg-gray-800 border-b border-[#e5e5e5] backdrop-blur-lg p-4 ${sidebarOpen ? "ml-[205px]" : "ml-0"}`}> 
-        <h1 className="font-bold text-center text-4xl text-[#f7f5f2]">Pivot Table Generator</h1>
+      <nav className={`fixed top-0 left-0 w-full transition-all duration-300 ease-in-out bg-gray-800 border-b border-[#e5e5e5] backdrop-blur-lg p-3 ${sidebarOpen ? "ml-[205px]" : "ml-0"}`}> 
+        <h1 className="font-bold text-center text-xl text-[#f7f5f2]">Pivot Table Generator</h1>
       </nav>
       <main
-        className={`transition-all duration-300 ease-in-out flex-1 flex justify-center overflow-x-hidden items-start p-6`}
+        className={`transition-all duration-300 ease-in-out flex-1 flex justify-center overflow-x-hidden items-start mt-6`}
         style={{
           marginLeft: sidebarOpen ? "420px" : "0px", 
         }}
@@ -62,7 +62,7 @@ function App() {
           <div className="max-w-[600px] w-full mx-auto">
             <FileUploader setLoading={setLoading} />
           </div>
-          {fileName && <div className="p-2 mt-8 bg-red-200 rounded-xl shadow-xl">
+          {fileName && <div className="p-1 bg-red-200 rounded-xl shadow-xl">
              <DataTable />
           </div>}
         </div>
