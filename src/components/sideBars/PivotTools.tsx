@@ -6,7 +6,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { type DragEndEvent, DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from "@dnd-kit/core";
 import type { RootState } from "../../lib/store";
 import DroppableZone from "../dnd/DroppableZone";
-import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions, RiCloseLine } from "@remixicon/react";
+import { RiLayoutColumnLine, RiFilter2Line, RiDragDropFill, RiLayoutRowLine, RiInputField, RiFunctions, RiCloseLine, RiCalendarFill } from "@remixicon/react";
 import { Button } from "../ui/button";
 
 const PivotTools: React.FC = () => {
@@ -207,7 +207,7 @@ const PivotTools: React.FC = () => {
           {activeItem ? (
             <div className="p-1 rounded-md border flex justify-start items-center gap-2 border-gray-600 text-sm bg-gray-600 shadow-lg cursor-grabbing">
               <div className="font-medium text-gray-200 truncate text-sm">{activeItem.name}</div>
-              <div className="text-xs text-gray-400 uppercase">{activeItem.type}</div>
+              <div className="text-xs text-white/80 uppercase">{activeItem.type === "number" ? <RiFunctions size={16} />: activeItem.type === "date" ? <RiCalendarFill size={16} /> : "" }</div>
             </div>
           ) : null}
         </DragOverlay>

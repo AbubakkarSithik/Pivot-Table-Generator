@@ -5,7 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import type { RootState } from "@/lib/store";
 import { updateValueAggregator } from "@/lib/store/slices/dataSlice";
 import { CSS } from "@dnd-kit/utilities";
-import { RiCloseLine } from "@remixicon/react";
+import { RiCloseLine, RiFunctions , RiCalendarFill } from "@remixicon/react";
 
 const SortableDraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDelete?: (name: string) => void }> = ({
   id,
@@ -57,7 +57,7 @@ const SortableDraggableItem: React.FC<{ id: string; col: ColumnItem; zone: strin
           <option value="max">Max</option>
         </select>
       ) : (
-        <div className="text-xs text-gray-400 uppercase">{col.type}</div>
+         <div className="text-xs text-white/80 uppercase">{col.type === "number" ? <RiFunctions size={16} />: col.type === "date" ? <RiCalendarFill size={16} /> : "" }</div>
       )}
 
       {zone !== "source" && onDelete && (

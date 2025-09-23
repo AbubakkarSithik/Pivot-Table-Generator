@@ -4,7 +4,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/lib/store";
 import { updateValueAggregator } from "@/lib/store/slices/dataSlice";
-import { RiCloseLine } from "@remixicon/react";
+import { RiCloseLine, RiFunctions , RiCalendarFill } from "@remixicon/react";
 
 const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDelete?: (name: string) => void }> = ({
   id,
@@ -55,7 +55,7 @@ const DraggableItem: React.FC<{ id: string; col: ColumnItem; zone: string; onDel
           <option value="max">Max</option>
         </select>
       ) : (
-        <div className="text-xs text-gray-400 uppercase">{col.type}</div>
+        <div className="text-xs text-white/80 uppercase">{col.type === "number" ? <RiFunctions size={16} />: col.type === "date" ? <RiCalendarFill size={16} /> : "" }</div>
       )}
 
       {zone !== "source" && onDelete && (
